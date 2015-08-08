@@ -2,6 +2,7 @@ package com.turin.tur.Main;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -13,6 +14,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.turin.tur.wave.WavFile;
+import com.turin.tur.wave.WavFileException;
 
 public class SVGtoSound {
 
@@ -40,9 +42,10 @@ public class SVGtoSound {
 	 * @param frecf Final value of frecuence
 	 * @param T Time (in sec) of sound
 	 * @param fs samples per second of the sound 
+	 * @return 
 	 * 
 	 */
-	private void createMusicRamp (float freci, float frecf, float T, float fs) {
+	private double[] createMusicRamp (float freci, float frecf, float T, float fs) {
 		double dt = 1 / fs; // es el dt que transcurre entre sample y sample
 		int N = Math.round(T * fs); // El numero de samples que hay que crear
 		double[] frec = logspacelog(freci, frecf, N, 10); // Crea una escala logaritmica en base 10 que va de la frecuencia inicial a la final
@@ -59,8 +62,11 @@ public class SVGtoSound {
 		for(int i=1 ; i<frec.length ; i++) {
 			frec[i] = Math.cos(frec[i]); 
 		} 
+		// Ya esta creado el sonido
 		
 		// ACA hay que agregar la rampoa tukeywin
+
+		return frec;
 		
 		int sampleRate = (int) fs;    // Samples per second
         double duration = T;     // Seconds
@@ -68,8 +74,19 @@ public class SVGtoSound {
         // Calculate the number of frames required for specified duration
         long numFrames = (long)(duration * sampleRate);
 
+        File file = new File (path,"prueba.wav");
+        
         // Create a wav file with the name specified as the first argument
-        WavFile wavFile = WavFile.newWavFile(new File(args[0]), 2, numFrames, 16, sampleRate);
+        try {
+			WavFile wavFile = WavFile.newWavFile(file, 1, numFrames, 16, sampleRate);
+			wavFile.writeFrames(frec, frec.length);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (WavFileException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
 		// Ahora vamos a grabarla a un archivo
 		// WavFile wavFile = WavFile.newWavFile(new File(args[0]), 2, numFrames, 16, sampleRate);
@@ -151,10 +168,13 @@ public class SVGtoSound {
     }
     
 	private void createSounds() {
-		double[] escala = logspacelog (100,8000,10,10);
-		System.out.println("empieza en: " + escala[0]);
-		System.out.println("medio en: " + escala[5]);
-		System.out.println("termina en: " + escala[escala.length-1]);
+		if (archivos!=null) {
+			for (InfoArchivo archivo : archivos) {
+				// Primero creamos la rampa principal
+				
+			}
+		}
+		createMusicRamp(300,8000, 10, 44100);
 	}
 
 	public class InfoArchivo {
