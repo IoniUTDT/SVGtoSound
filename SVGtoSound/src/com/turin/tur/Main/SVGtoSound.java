@@ -12,10 +12,12 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.turin.tur.wave.WavFile;
+
 public class SVGtoSound {
 
 	// Define algunas constantes
-	public String path = "E:/Ioni/Dropbox/RieraPerez/svg";
+	public String path = "./testFiles/";
 	public File[] archivosOriginales;
 	public ArrayList<InfoArchivo> archivos = new ArrayList<InfoArchivo>();
 	public final boolean logScale=true;
@@ -60,6 +62,15 @@ public class SVGtoSound {
 		
 		// ACA hay que agregar la rampoa tukeywin
 		
+		int sampleRate = (int) fs;    // Samples per second
+        double duration = T;     // Seconds
+
+        // Calculate the number of frames required for specified duration
+        long numFrames = (long)(duration * sampleRate);
+
+        // Create a wav file with the name specified as the first argument
+        WavFile wavFile = WavFile.newWavFile(new File(args[0]), 2, numFrames, 16, sampleRate);
+
 		// Ahora vamos a grabarla a un archivo
 		// WavFile wavFile = WavFile.newWavFile(new File(args[0]), 2, numFrames, 16, sampleRate);
 		
@@ -166,9 +177,13 @@ public class SVGtoSound {
 	}
 	
 	private void loadFiles() {
+		
+		File home = new File("hola.txt");
+		System.out.println(home.getAbsolutePath());
 
 		// Primero busca la lista de archivos de interes
 		File dir = new File(path);
+		System.out.println(dir.getAbsolutePath());
 		archivosOriginales = dir.listFiles(new SvgFileFilter());
 
 		for (File file : archivosOriginales) { // El loop por cada archivo
