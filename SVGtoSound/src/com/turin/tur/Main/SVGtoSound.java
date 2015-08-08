@@ -41,6 +41,27 @@ public class SVGtoSound {
 	 * 
 	 */
 	private void createMusicRamp (float freci, float frecf, float T, float fs) {
+		double dt = 1 / fs; // es el dt que transcurre entre sample y sample
+		int N = Math.round(T * fs); // El numero de samples que hay que crear
+		double[] frec = logspacelog(freci, frecf, N, 10); // Crea una escala logaritmica en base 10 que va de la frecuencia inicial a la final
+		for(int i=0 ; i<frec.length ; i++) { // Lo multiplica x 2pi para trabajar con la fase
+			frec[i] = frec[i]*2*Math.PI;
+		}
+		// Integra las freciencias instantaneas
+		for(int i=1 ; i<frec.length ; i++) { // Lo multiplica x 2pi para trabajar con la fase
+			frec[i] = frec[i]+frec[i-1]*dt; // El primero lo deja tal cual y despues suma hasta el ultimo
+		} 
+		// ahora frec es la fase instante a instante
+		
+		// Vamos a hacer el coseno de la fase
+		for(int i=1 ; i<frec.length ; i++) {
+			frec[i] = Math.cos(frec[i]); 
+		} 
+		
+		// ACA hay que agregar la rampoa tukeywin
+		
+		// Ahora vamos a grabarla a un archivo
+		// WavFile wavFile = WavFile.newWavFile(new File(args[0]), 2, numFrames, 16, sampleRate);
 		
 	}
 
