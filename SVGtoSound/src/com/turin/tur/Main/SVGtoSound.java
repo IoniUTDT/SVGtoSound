@@ -72,10 +72,27 @@ public class SVGtoSound {
 		}
 		// Ya esta creado el sonido
 
-		// ACA hay que agregar la rampoa tukeywin
+		frec =  tukeywin (frec,0.05);
+
 
 		return frec;
 
+	}
+
+	/**
+	 *  Aplica una funcion tipo tukeywin (que suaviza los extremos) 
+	 *  
+	 * @param frec Es el array de datos de entrada
+	 * @param d es el parametro de cuanto suavizar. Si es un numero menor que uno asume que es el porcentaje (por unidad), si es mayor que es numero de frames a suavizar
+	 * @return Devuelve el input suavizado
+	 */
+	private double[] tukeywin(double[] frec, double d) {
+		int framesMaximos;
+		/*
+		if (d>1) framesMaximos = (int)
+		*/
+		// SEGUIR!
+		return null;
 	}
 
 	/**
@@ -156,17 +173,20 @@ public class SVGtoSound {
 				// create the base full length secuence for file
 				int N = (int) (secByPix * archivo.ancho * timefactor * fs);
 				double[] secuence = new double[N];
-
+				
 				for (Linea linea : archivo.lineas) {
 
 					double[] rampa = createMusicRamp(linea.freci, linea.frecf, linea.ti, linea.tf);
+					for (int i = 0; i<rampa.length; i++) {
+						rampa[i] = rampa[i] / archivo.lineas.size();
+					}
 					int frameInicial = (int) linea.ti * fs;
 					for (int i = 0; i < rampa.length; i++) {
 						secuence[i + frameInicial] = secuence[i + frameInicial] + rampa[i];
 					}
 				}
 
-				File file = new File(path, "prueba.wav");
+				File file = new File(path, archivo.nombre+".wav");
 				// Create a wav file with the name specified as the first argument
 				try {
 					WavFile wavFile = WavFile.newWavFile(file, 1, secuence.length, 16, fs);
@@ -185,6 +205,16 @@ public class SVGtoSound {
 
 	private void findParameters(Linea linea, float ancho, float alto) {
 
+		// se fija que la linea vaya de izquierda a derecha y sino lo corrige
+		if (linea.xi > linea.xf) {
+			float temp = linea.xi;
+			linea.xi = linea.xf;
+			linea.xf = temp;
+			temp = linea.yi;
+			linea.yi=linea.yf;
+			linea.yf= temp;
+		}
+		
 		// get scale correction for file
 		float timefactor;
 		if (fixedTime) {
@@ -204,6 +234,7 @@ public class SVGtoSound {
 		// get the initial and final frec based in conditions
 		float yi = linea.yi * frecfactor;
 		float yf = linea.yf * frecfactor;
+		
 		// corrige que el SVG toma el cero arriba
 		yi = maxHeigth - yi;
 		yf = maxHeigth - yf;
