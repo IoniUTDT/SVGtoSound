@@ -92,7 +92,7 @@ public class SVGtoSound {
 		if (d>1) framesMaximos = (int)
 		*/
 		// SEGUIR!
-		return null;
+		return frec;
 	}
 
 	/**
