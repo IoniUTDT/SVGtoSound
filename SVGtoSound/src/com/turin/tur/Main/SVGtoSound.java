@@ -61,7 +61,7 @@ public class SVGtoSound {
 			frec[i] = frec[i] * 2 * Math.PI;
 		}
 		// Integra las freciencias instantaneas
-		for (int i = 1; i < frec.length; i++) { 
+		for (int i = 1; i < frec.length; i++) {
 			frec[i] = frec[i - 1] + frec[i] * dt; // El primero lo deja tal cual y despues suma hasta el ultimo
 		}
 		// ahora frec es la fase instante a instante
@@ -76,6 +76,54 @@ public class SVGtoSound {
 
 		return frec;
 
+	}
+
+	/**
+	 * Crea un pulso limitado en frecuencia
+	 * 
+	 * @param freci
+	 *            Frecuencia inicial
+	 * 
+	 * @param frecf
+	 *            Frecuencia final
+	 * @return secuencia de datos con el pulso de frecuencia
+	 */
+	private double[] createPulse(float freci, float frecf) {
+		// Usamos la antritransformada de fourirer de un rectangulo, ver : https://en.wikipedia.org/wiki/Sinc_filter
+		double frecM;
+		double frecm;
+		if (freci > frecf) {
+			frecM = freci;
+			frecm = frecf;
+		} else {
+			frecM = frecf;
+			frecm = freci;
+		}
+		// El pulso creado es en teoria infinito, pero el sonido hay que recortarlo. Igualmente al ser un sinc decae rapidamente.
+		// Usamos como longitud inicial el tiempo de parametro 
+		int frames = (int) (time * fs); // Numero de frames del pulso creado
+		// Creamos las escalas temporales
+		double[] pulse = linspace(-time/2, time/2, frames); // escala de tiempo
+		// Creamos las funciones sinc y las restamos
+		for (int i=0; i<frames; i++) {
+			double sup;
+			double inf;
+			double x;
+			if (pulse[i] == 0) {
+				sup = 1;
+			} else {
+				x = 2*Math.PI*frecM*pulse[i];
+				sup = 2*frecM*Math.sin(x)/x;
+			}
+			if (pulse[i] == 0) {
+				inf = 1;
+			} else {
+				x = 2*Math.PI*frecm*pulse[i];
+				inf = 2*frecm*Math.sin(x)/x;
+			}
+			pulse[i] = sup; // /2 - inf/2;
+		}		
+		return pulse;
 	}
 
 	/**
@@ -220,6 +268,20 @@ public class SVGtoSound {
 					e.printStackTrace();
 				}
 			}
+		}
+		
+		double[] pulse = createPulse(100, 8000);
+		File file = new File(path, "prueba.wav");
+		// Create a wav file with the name specified as the first argument
+		try {
+			WavFile wavFile = WavFile.newWavFile(file, 1, pulse.length, 16, fs);
+			wavFile.writeFrames(pulse, pulse.length);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (WavFileException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
 	}
