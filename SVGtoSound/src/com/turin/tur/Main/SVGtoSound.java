@@ -103,28 +103,28 @@ public class SVGtoSound {
 		// Usamos como longitud inicial el tiempo de parametro 
 		int frames = (int) (time * fs); // Numero de frames del pulso creado
 		// Creamos las escalas temporales
-		double[] pulse = linspace(-time/2, time/2, frames); // escala de tiempo
+		double[] pulse = linspace(-time / 2, time / 2, frames); // escala de tiempo
 		// Creamos las funciones sinc y las restamos
-		for (int i=0; i<frames; i++) {
+		for (int i = 0; i < frames; i++) {
 			double sup;
 			double inf;
 			double x;
 			if (pulse[i] == 0) {
 				sup = 1;
 			} else {
-				x = 2*Math.PI*frecM*pulse[i];
+				x = 2 * Math.PI * frecM * pulse[i];
 				// sup = 2*frecM*Math.sin(x)/x;
-				sup = Math.sin(x)/x;
+				sup = Math.sin(x) / x;
 			}
 			if (pulse[i] == 0) {
 				inf = 1;
 			} else {
-				x = 2*Math.PI*frecm*pulse[i];
+				x = 2 * Math.PI * frecm * pulse[i];
 				// inf = 2*frecm*Math.sin(x)/x;
-				inf = Math.sin(x)/x;
+				inf = Math.sin(x) / x;
 			}
-			pulse[i] = sup/2 - inf/2;
-		}		
+			pulse[i] = sup / 2 - inf / 2;
+		}
 		return pulse;
 	}
 
@@ -247,13 +247,25 @@ public class SVGtoSound {
 
 				for (Linea linea : archivo.lineas) {
 
-					double[] rampa = createMusicRamp(linea.freci, linea.frecf, linea.ti, linea.tf);
-					for (int i = 0; i < rampa.length; i++) {
-						rampa[i] = rampa[i] / archivo.lineas.size();
-					}
-					int frameInicial = (int) linea.ti * fs;
-					for (int i = 0; i < rampa.length; i++) {
-						secuence[i + frameInicial] = secuence[i + frameInicial] + rampa[i];
+					double angulo = Math.atan((linea.yf - linea.yi) / (linea.xf - linea.xi));
+
+					if (Math.abs(angulo) > Math.PI / 2 * 0.95) { // Agrega una linea en caso de que sea rampa
+						double[] rampa = createMusicRamp(linea.freci, linea.frecf, linea.ti, linea.tf);
+						for (int i = 0; i < rampa.length; i++) { // Normaliza
+							rampa[i] = rampa[i] / archivo.lineas.size();
+						}
+						int frameInicial = (int) linea.ti * fs;
+						for (int i = 0; i < rampa.length; i++) { // agrega a la secuencia general
+							secuence[i + frameInicial] = secuence[i + frameInicial] + rampa[i];
+						}
+					} else { // agrega una linea en caso de que sea pulso
+						double[] pulso = createPulse(linea.freci, linea.frecf);
+						for (int i = 0; i < pulso.length; i++) { // Normaliza
+							pulso[i] = pulso[i] / archivo.lineas.size();
+						}
+						float tiempoCentral = (linea.tf+linea.ti)/2;
+						float frameCentral = (int) (tiempoCentral * fs);
+						// SEGUIR
 					}
 				}
 
@@ -271,7 +283,7 @@ public class SVGtoSound {
 				}
 			}
 		}
-		
+
 		double[] pulse = createPulse(1000, 8000);
 		File file = new File(path, "prueba.wav");
 		// Create a wav file with the name specified as the first argument
