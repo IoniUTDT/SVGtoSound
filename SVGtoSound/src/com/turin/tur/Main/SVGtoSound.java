@@ -113,15 +113,17 @@ public class SVGtoSound {
 				sup = 1;
 			} else {
 				x = 2*Math.PI*frecM*pulse[i];
-				sup = 2*frecM*Math.sin(x)/x;
+				// sup = 2*frecM*Math.sin(x)/x;
+				sup = Math.sin(x)/x;
 			}
 			if (pulse[i] == 0) {
 				inf = 1;
 			} else {
 				x = 2*Math.PI*frecm*pulse[i];
-				inf = 2*frecm*Math.sin(x)/x;
+				// inf = 2*frecm*Math.sin(x)/x;
+				inf = Math.sin(x)/x;
 			}
-			pulse[i] = sup; // /2 - inf/2;
+			pulse[i] = sup/2 - inf/2;
 		}		
 		return pulse;
 	}
@@ -270,7 +272,7 @@ public class SVGtoSound {
 			}
 		}
 		
-		double[] pulse = createPulse(100, 8000);
+		double[] pulse = createPulse(1000, 8000);
 		File file = new File(path, "prueba.wav");
 		// Create a wav file with the name specified as the first argument
 		try {
