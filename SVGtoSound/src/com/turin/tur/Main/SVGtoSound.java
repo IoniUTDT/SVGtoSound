@@ -264,8 +264,20 @@ public class SVGtoSound {
 							pulso[i] = pulso[i] / archivo.lineas.size();
 						}
 						float tiempoCentral = (linea.tf+linea.ti)/2;
-						float frameCentral = (int) (tiempoCentral * fs);
-						// SEGUIR
+						int frameCentral = (int) (tiempoCentral * fs);
+						int posicionInicial = frameCentral - pulso.length/2; 
+						for (int i=0; i<pulso.length;i++) {
+							  if (posicionInicial + i < 0) {
+								  continue; // No hace nada si el principio del pulso cae fuera del rango del audio
+								  } else {
+									  if (posicionInicial + i > secuence.length) {
+										  break; // Termina el for si ya se excede del rando del sonido
+									  } else {
+										  secuence[posicionInicial + i] = secuence[posicionInicial + i] + pulso[i]; // Si esta en el rango valido agrega el pulso
+									  }
+										  
+								  }
+						}
 					}
 				}
 
