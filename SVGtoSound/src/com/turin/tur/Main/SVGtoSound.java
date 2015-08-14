@@ -36,6 +36,7 @@ public class SVGtoSound {
 	public SVGtoSound() {
 		this.loadFiles();
 		this.createSounds();
+		System.out.println("Finalizado con exito");
 	}
 
 	/**
@@ -249,38 +250,38 @@ public class SVGtoSound {
 
 					double angulo = Math.atan((linea.yf - linea.yi) / (linea.xf - linea.xi));
 
-					if (Math.abs(angulo) > Math.PI / 2 * 0.95) { // Agrega una linea en caso de que sea rampa
+					if (Math.abs(angulo) < (Math.PI / 2 - 0.001)) { // Agrega una linea en caso de que sea rampa (con 0.001 de tolerancia se distingue hasta 0.1 pixel de corrimiento lateral en todo el alto de la imagen. Este es el limite en que se escucha casi identico aunque mucho antes ya no se distingue visualmente 
 						double[] rampa = createMusicRamp(linea.freci, linea.frecf, linea.ti, linea.tf);
-						for (int i = 0; i < rampa.length; i++) { // Normaliza
-							rampa[i] = rampa[i] / archivo.lineas.size();
-						}
 						int frameInicial = (int) linea.ti * fs;
 						for (int i = 0; i < rampa.length; i++) { // agrega a la secuencia general
 							secuence[i + frameInicial] = secuence[i + frameInicial] + rampa[i];
 						}
 					} else { // agrega una linea en caso de que sea pulso
 						double[] pulso = createPulse(linea.freci, linea.frecf);
-						for (int i = 0; i < pulso.length; i++) { // Normaliza
-							pulso[i] = pulso[i] / archivo.lineas.size();
-						}
-						float tiempoCentral = (linea.tf+linea.ti)/2;
+						float tiempoCentral = (linea.tf + linea.ti) / 2;
 						int frameCentral = (int) (tiempoCentral * fs);
-						int posicionInicial = frameCentral - pulso.length/2; 
-						for (int i=0; i<pulso.length;i++) {
-							  if (posicionInicial + i < 0) {
-								  continue; // No hace nada si el principio del pulso cae fuera del rango del audio
-								  } else {
-									  if (posicionInicial + i > secuence.length) {
-										  break; // Termina el for si ya se excede del rando del sonido
-									  } else {
-										  secuence[posicionInicial + i] = secuence[posicionInicial + i] + pulso[i]; // Si esta en el rango valido agrega el pulso
-									  }
-										  
-								  }
+						int posicionInicial = frameCentral - pulso.length / 2;
+						for (int i = 0; i < pulso.length; i++) {
+							if (posicionInicial + i < 0) {
+								i=i-posicionInicial; // No hace nada en la primer iteracion y corrige el i para que vaya al primer lugar util
+							} else {
+								if (posicionInicial + i > secuence.length - 1) {
+									break; // Termina el for si ya se excede del rando del sonido
+								} else {
+									secuence[posicionInicial + i] = secuence[posicionInicial + i] + pulso[i]; // Si esta en el rango valido agrega el pulso
+								}
+
+							}
 						}
 					}
 				}
-
+				double max=0;
+				for (int i = 0; i < secuence.length; i++) { // busca el maximo
+					if (Math.abs(secuence[i]) > max) {max = Math.abs(secuence[i]);}
+				}
+				for (int i = 0; i < secuence.length; i++) { // busca el maximo
+					secuence[i] = secuence[i] / max;
+				}
 				File file = new File(path, archivo.nombre + ".wav");
 				// Create a wav file with the name specified as the first argument
 				try {
@@ -295,21 +296,6 @@ public class SVGtoSound {
 				}
 			}
 		}
-
-		double[] pulse = createPulse(1000, 8000);
-		File file = new File(path, "prueba.wav");
-		// Create a wav file with the name specified as the first argument
-		try {
-			WavFile wavFile = WavFile.newWavFile(file, 1, pulse.length, 16, fs);
-			wavFile.writeFrames(pulse, pulse.length);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (WavFileException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
 	}
 
 	private void findParameters(Linea linea, float ancho, float alto) {
